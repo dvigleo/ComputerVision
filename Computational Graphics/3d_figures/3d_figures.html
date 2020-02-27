@@ -1,0 +1,37 @@
+<html>
+
+<head>
+<title>3d Figures</title>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<script src="../libs/jquery-3.4.1/jquery-3.4.1.min.js"></script>
+<script src="../libs/gl-matrix/gl-matrix.js"></script>
+
+<script src="3d_figures.js"></script>
+
+<script type="text/javascript">
+          
+	$(document).ready(
+			function() {
+		        let canvas = document.getElementById("webglcanvas");
+			    let gl = initWebGL(canvas);
+		        initViewport(gl, canvas);
+		        initGL(canvas);
+				
+				let pyramid = createPyramid(gl, [-0.30, -0.08, -1.2], [0.1, 1.0, 0.2]);
+				let dodecahedron = createDodecahedron(gl, [0, 0, -10], [-0.4, 1.0, 0.1],  [0.0, 1.0, 0,0]);
+				let octahedron = createOctahedron(gl, [3, 0, -10], [0, 1, 0]);
+				initShader(gl);
+
+				run(gl, [pyramid, dodecahedron, octahedron]);	
+			}
+	);
+
+</script>
+
+</head>
+<body>
+
+    <canvas id="webglcanvas" style="border: none;" width="500" height="500"></canvas>
+
+</body>
+</html>
