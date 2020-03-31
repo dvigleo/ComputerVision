@@ -12,6 +12,8 @@ let currentTime = Date.now();
 
 let number_enemies = 1;
 
+let score = 0;
+
 // loading obj on screen
 function promisifyLoader ( loader, onProgress ) {
     function promiseLoader ( url ) {
@@ -38,8 +40,8 @@ async function loadObj(objModelUrl, objectList) {
             }
         });
         
-        object.scale.set(3, 3, 3);
-        object.position.set(Math.random() * 200 - 100, Math.random() * 200 - 100, -400);
+        object.scale.set(6, 6, 6);
+        object.position.set(Math.random() * 200 - 100, Math.random() * 200 - 100, -600);
         object.name = "Frog";
         objectList.push(object);
         scene.add(object);
@@ -49,6 +51,8 @@ async function loadObj(objModelUrl, objectList) {
     }
 }
 
+const onError = ( ( err ) => { console.error( err ); } );
+
 function animate() {
     let now = Date.now();
     let deltat = now - currentTime;
@@ -57,39 +61,56 @@ function animate() {
     let randomVel;
     
     objectList.forEach(object => {
-        randomVel = Math.random() * 100 + 10;
+        randomVel = Math.random() * 200 + 50;
         object.translateZ(randomVel * fract + 0.5);
-        if(object.position.z >= -150){
-            scene.remove(object);
-            objectList.pop();
-            if(objectList < number_enemies){
-                spawnumber_enemies();
-            }
-        }
-        let angle = Math.PI * 2 * fract;
-        // object.rotation.y += angle;
+        damage_from_enemy(object);
     });
 
 }
 
-function spawnumber_enemies(){
+function damage_from_enemy(object){
+    // Change the object color when reaching a certain distance
+    if(object.position.z >= -150 || object.position.z >= -200){
+        object.traverse(function (child) {
+            if (child instanceof THREE.Mesh) {
+                child.material.emissive.setHex(0xFF0000);
+            }
+        });
+    }
+    // If the object is close, damage the player by reducing the score. Simultaneously checks if the score is == 0, it restarts the game
+    if(object.position.z >= -150){
+        scene.remove(object);
+        objectList.pop();
+        if(score <= 0){
+            console.log("You lost");
+            game_over();
+        }
+        $("#score").html("Score: " + (score -= 1));
+        if(objectList < number_enemies){
+            spawn_enemy();
+        }
+    }
+}
+
+function spawn_enemy(){
     loadObj(objModelUrl, objectList)
 }
 
-function killEnemy(object) {
-    // scene.remove(scene.getObjectByName(object));
-    // object.traverse(function (child) {
-    //     child.material.map.dispose();       
-    // });
-    console.log("Enemy killed ");
-    // object.visible = false;
+// When the player has clicked on the object, it destroyes it, adds a point to the score and respawns an enemy
+function kill_enemy(object) {
+    objectList.pop();
     scene.remove(object);
-    render();
+    spawn_enemy();
+    $("#score").html("Score: " + (score += 1));
 }
 
-const onError = ( ( err ) => { console.error( err ); } );
+// Reloads the whole page
+function game_over(){
+    window.location.reload(true);
+}
 
-function createScene(canvas) {
+function create_scene(canvas) {
+    $("#score").html("Score: " + (score));
     renderer = new THREE.WebGLRenderer( { canvas: canvas, antialias: true } );
 
     // Set the viewport size
@@ -112,13 +133,12 @@ function createScene(canvas) {
     scene.add(ambientLight);
     
     for(let i = 0; i < number_enemies; i ++) 
-        spawnumber_enemies();
+        spawn_enemy();
     
     raycaster = new THREE.Raycaster();
         
     document.addEventListener('mousemove', onDocumentMouseMove);
-    document.addEventListener('mousedown', onDocumentMouseDown);
-    
+    document.addEventListener('mousedown', onDocumentMouseDown);    
     window.addEventListener( 'resize', onWindowResize);
 }
 
@@ -167,12 +187,10 @@ function onDocumentMouseDown(event) {
     raycaster.setFromCamera( mouse, camera );
 
     let intersects = raycaster.intersectObjects( scene.children, true );
-    console.log('intersects: ' , intersects);
     if ( intersects.length > 0 ) {
         CLICKED = intersects[ intersects.length - 1 ].object;
         CLICKED.material.emissive.setHex( 0xFF0000 );
-        // console.log(CLICKED);
-        killEnemy(CLICKED);
+        kill_enemy(CLICKED.parent);
     } 
     else {
         if ( CLICKED ) {
