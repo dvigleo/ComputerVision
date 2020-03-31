@@ -47,23 +47,26 @@
 
 </head>
 <body>
-
   <div class="container">
     <canvas id="webglcanvas"></canvas>
     <div id="overlay">
-      FROG INVASION!
-      <div>Time: <span id="time"></span></div>
+      <h1>FROG INVASION!</h1>  
+      <br>
+      <div>Timer: <span id="timer">15</span> </div>
       <div id="score">Score: </div>
-      <button type="button" onClick="reloadThePage()">Reset</button>
+      <br>
+      <div id="result"></div>
+      <br>
+      <button id="restart_btn" type="button" onClick="restart_game()">Reset</button>
     </div>
   </div>
 
 </body>
 
 <script>
-  function reloadThePage(){
+  function restart_game(){
       window.location.reload(true);
   } 
-  </script>
+</script>
 
 </html>

@@ -2,17 +2,21 @@ let container;
 let camera, scene, raycaster, renderer;
 
 let mouse = new THREE.Vector2(), INTERSECTED, CLICKED;
+let clock = new THREE.Clock();
 
 let objLoader = null;
 let objectList = [];
 let objModelUrl = {obj:'models/obj/frog/frog.obj', map:'models/obj/frog/texture.jpg'};
 
-let duration = 4000; // ms
+let duration = 2000; // ms
 let currentTime = Date.now();
 
 let number_enemies = 1;
 
 let score = 0;
+let seconds = 15;
+
+let requestId;
 
 // loading obj on screen
 function promisifyLoader ( loader, onProgress ) {
@@ -68,6 +72,15 @@ function animate() {
 
 }
 
+let countdown = setInterval(function() {
+    seconds--;
+    document.getElementById("timer").textContent = seconds;
+        if (seconds <= 0) {
+            game_over();
+            clearInterval(countdown);
+        }
+    }, 1000);
+
 function damage_from_enemy(object){
     // Change the object color when reaching a certain distance
     if(object.position.z >= -150 || object.position.z >= -200){
@@ -81,11 +94,14 @@ function damage_from_enemy(object){
     if(object.position.z >= -150){
         scene.remove(object);
         objectList.pop();
+        score -= 1;
         if(score <= 0){
-            console.log("You lost");
             game_over();
+            document.getElementById("score").textContent = "Score: 0";
+        } else {
+            $("#score").html("Score: " + (score -= 1));
         }
-        $("#score").html("Score: " + (score -= 1));
+       
         if(objectList < number_enemies){
             spawn_enemy();
         }
@@ -106,11 +122,18 @@ function kill_enemy(object) {
 
 // Reloads the whole page
 function game_over(){
-    window.location.reload(true);
+    document.getElementById("restart_btn").style.display="block";
+    document.getElementById("result").textContent = "Loser";
+    document.getElementById("result").style.display="block";
+    window.cancelAnimationFrame(requestId);
+    requestId = undefined;
 }
 
 function create_scene(canvas) {
     $("#score").html("Score: " + (score));
+    document.getElementById("restart_btn").style.display="none";
+    document.getElementById("result").style.display="none";  
+
     renderer = new THREE.WebGLRenderer( { canvas: canvas, antialias: true } );
 
     // Set the viewport size
@@ -201,7 +224,7 @@ function onDocumentMouseDown(event) {
 }
 
 function run() {
-    requestAnimationFrame( run );
+    requestId = requestAnimationFrame( run );
     render();
     animate();
 }
