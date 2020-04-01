@@ -99,7 +99,7 @@ function damage_from_enemy(object){
             game_over();
             document.getElementById("score").textContent = "Score: 0";
         } else {
-            $("#score").html("Score: " + (score -= 1));
+            $("#score").html("Score: " + (score));
         }
        
         if(objectList < number_enemies){
